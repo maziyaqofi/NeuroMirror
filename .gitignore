@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual Environment
+.venv/
+.venv311/
+.venv_gaze_test/
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Experiment Data
+data/raw/
+data/processed/
+
+# Results
+results/
+
+# Logs
+*.log
+# Development experiment logs
+event_log_*.csv

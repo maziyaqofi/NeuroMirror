@@ -1,0 +1,6 @@
+timestamp,event_type,task,block,trial,target_direction,target_eccentricity_deg,intended_iti_s,details
+0.6813694341108203,session_start,session,,,,,,full_session_protocol
+1.6198460101149976,fixation_block_placeholder,fixation,,,,,,
+2.575681485934183,prosaccade_block_placeholder,prosaccade,,,,,,
+3.3996021260973066,antisaccade_block_placeholder,antisaccade,,,,,,
+3.3996442649513483,session_end,session,,,,,,full_session_protocol

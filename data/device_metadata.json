@@ -1,0 +1,37 @@
+{
+    "project": "NeuroMirror",
+    "experiment": "Experiment 01",
+    "metadata_type": "device_environment",
+    "generated_at": "2026-09-17T20:12:04.100212+07:00",
+    "system": {
+        "operating_system": "Darwin",
+        "os_release": "24.6.0",
+        "machine": "x86_64",
+        "processor": "i386",
+        "python_version": "3.9.6",
+        "python_executable": "/Users/macbookpro2019/MaziyaCode/NeuroMirror/.venv/bin/python"
+    },
+    "display": {
+        "detected": true,
+        "physical_width_px": 2560,
+        "physical_height_px": 1600,
+        "aspect_ratio": 1.6
+    },
+    "camera": {
+        "detected": true,
+        "camera_index": 0,
+        "requested_resolution": {
+            "width": 1280,
+            "height": 720
+        },
+        "actual_resolution": {
+            "width": 1280,
+            "height": 720
+        },
+        "requested_fps": 30,
+        "reported_fps": 30.0,
+        "measured_fps": 29.49,
+        "measurement_duration_seconds": 5.02,
+        "frames_captured": 148
+    }
+}
