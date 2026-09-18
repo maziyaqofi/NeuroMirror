@@ -1083,3 +1083,263 @@ Important limitations:
 
 Status:
 Phase 1C.26 Full Session Protocol Integration validated.
+
+---
+
+## Phase 1D — Eye/Gaze Tracking Development
+
+### 1D.1A — Camera Acquisition Sanity Check
+
+**Status:** PASS
+
+The built-in FaceTime HD camera was tested using OpenCV before integrating eye/gaze tracking.
+
+Observed configuration:
+
+- Resolution: 1280 × 720
+- Requested FPS: 30
+- Reported FPS: 30.00
+- Measured FPS: approximately 29.93
+- Test duration: approximately 5 seconds
+- Captured frames: 150
+
+The camera acquisition pipeline operated successfully and was considered sufficient to continue with gaze-tracking feasibility testing.
+
+---
+
+### 1D.1B — Isolated Gaze Tracking Environment
+
+**Status:** PASS
+
+MediaPipe compatibility was evaluated before installation into the main NeuroMirror environment.
+
+A dry-run installation indicated that MediaPipe would modify important dependencies in the existing `.venv311` environment, including NumPy and the OpenCV stack.
+
+To preserve the stable PsychoPy environment, a separate gaze-tracking sandbox was created:
+
+- Environment: `.venv_gaze_test`
+- Python: 3.11.16
+- MediaPipe: 0.10.21
+- OpenCV: 4.11.0
+- NumPy: 1.26.4
+
+This environment is used for current MediaPipe-based eye/gaze feasibility development.
+
+---
+
+### 1D.1C — Gaze Environment Dependency Verification
+
+**Status:** PASS
+
+The core gaze-tracking dependencies were successfully imported inside `.venv_gaze_test`.
+
+Verified packages:
+
+- MediaPipe 0.10.21
+- OpenCV 4.11.0
+- NumPy 1.26.4
+
+No import failure occurred.
+
+---
+
+### 1D.1D — Face and Eye/Iris Landmark Detection
+
+**Status:** PASS
+
+MediaPipe Face Mesh was tested using the built-in RGB camera with refined facial landmarks enabled.
+
+The system successfully detected:
+
+- Face landmarks
+- Eye landmarks
+- Iris landmarks
+
+During manual observation, iris landmarks visually followed eye movement.
+
+This test confirms landmark detection feasibility only. It does not establish gaze-direction accuracy or clinical-grade eye tracking.
+
+---
+
+### 1D.2A — Normalized Horizontal Iris Position Signal
+
+**Status:** PRELIMINARY PASS
+
+A normalized horizontal iris-position feature was calculated relative to the eye-corner landmarks.
+
+Manual observations at approximately 52.5 cm viewing distance showed:
+
+- CENTER: approximately 0.470–0.525
+- RIGHT: approximately 0.438–0.489
+- LEFT: approximately 0.500–0.578
+
+The observed ordering was:
+
+`RIGHT < CENTER < LEFT`
+
+However, the ranges overlapped. Therefore, no fixed gaze-direction thresholds were defined.
+
+The result suggests that normalized iris position contains a usable horizontal gaze signal, but classification performance remains unvalidated.
+
+---
+
+### 1D.2B — Automatic Iris Signal Recording
+
+**Status:** PASS
+
+A frame-level recording diagnostic was implemented to automatically collect normalized iris-position measurements during a controlled sequence:
+
+`CENTER → LEFT → CENTER → RIGHT → CENTER`
+
+Each condition lasted approximately 5 seconds.
+
+Recorded fields included:
+
+- Timestamp
+- Frame number
+- Condition
+- Left iris ratio
+- Right iris ratio
+- Average iris ratio
+- Face detection status
+
+Raw video was not stored.
+
+#### Stable Development Run
+
+File:
+
+`iris_signal_20260919_044923.csv`
+
+Results:
+
+- Total frames: 389
+- Face detected: 389
+- Tracking availability: 100%
+- Missing iris measurements: 0
+
+Median average iris ratios:
+
+- LEFT: 0.5591
+- CENTER: 0.5080
+- RIGHT: 0.4672
+
+The expected directional ordering was reproduced:
+
+`RIGHT < CENTER < LEFT`
+
+Raw frame-level distributions still overlapped. Therefore, these results do not support fixed per-frame LEFT/CENTER/RIGHT classification thresholds.
+
+#### Tracking-Loss Development Run
+
+File:
+
+`iris_signal_20260919_045233.csv`
+
+The participant intentionally moved partially or completely outside the camera view during the recording.
+
+Results:
+
+- Total frames: 414
+- Face detected: 111
+- Tracking availability: 26.81%
+
+This run demonstrated that the recording pipeline can represent loss of face tracking quantitatively.
+
+Tracking availability may therefore become one component of future session-level quality control.
+
+---
+
+### 1D.2C — Block-Level Signal Repeatability
+
+**Status:** PRELIMINARY PASS
+
+A second diagnostic preserved each condition as an independent block:
+
+1. CENTER
+2. LEFT
+3. CENTER
+4. RIGHT
+5. CENTER
+
+This allowed the three CENTER measurements to be evaluated independently.
+
+#### Tracking-Loss Run
+
+File:
+
+`iris_block_repeatability_20260919_050619.csv`
+
+Results:
+
+- Total frames: 458
+- Face detected: 251
+- Tracking availability: 54.80%
+
+The participant was not consistently visible to the camera during this run.
+
+The run is retained as development evidence of tracking loss and is not used as the primary repeatability run.
+
+#### Stable Repeatability Run
+
+File:
+
+`iris_block_repeatability_20260919_064229.csv`
+
+Results:
+
+- Total frames: 393
+- Face detected: 393
+- Tracking availability: 100%
+
+Block-level median average iris ratios:
+
+| Block | Condition | Median |
+|------:|-----------|-------:|
+| 1 | CENTER | 0.4976 |
+| 2 | LEFT | 0.5415 |
+| 3 | CENTER | 0.4990 |
+| 4 | RIGHT | 0.4507 |
+| 5 | CENTER | 0.4981 |
+
+CENTER medians:
+
+- CENTER-1: 0.4976
+- CENTER-2: 0.4990
+- CENTER-3: 0.4981
+
+CENTER median range:
+
+`0.0014`
+
+Directional ordering was again observed:
+
+`RIGHT < CENTER < LEFT`
+
+The three CENTER blocks returned to very similar median values during this recording, providing preliminary evidence of short-term within-session repeatability.
+
+Absolute iris-ratio values differed between development runs while directional ordering remained consistent. This observation supports investigating session-specific or personalized reference measurements rather than assuming universal fixed thresholds.
+
+Frame-level ranges continued to overlap across gaze conditions. Future processing should therefore investigate temporal aggregation and calibration rather than relying on individual-frame classification.
+
+---
+
+## Phase 1D Current Interpretation
+
+Development testing currently supports the following conclusions:
+
+1. The built-in RGB camera can provide face and iris landmarks using MediaPipe.
+2. Normalized horizontal iris position responds systematically to horizontal gaze movement.
+3. The directional pattern `RIGHT < CENTER < LEFT` has been reproduced across multiple development runs.
+4. Short-term repeated CENTER measurements showed promising within-session consistency in the stable repeatability run.
+5. Face-tracking loss can be detected and quantified.
+6. Individual frame values are not sufficiently separated to justify fixed gaze-direction thresholds.
+7. Absolute iris-ratio values can shift between recordings.
+8. Session-specific calibration and relative gaze displacement should be investigated before gaze classification.
+9. These results demonstrate engineering feasibility only and do not establish clinical validity or Alzheimer’s-related biomarker validity.
+
+### Phase 1D.2 Overall Status
+
+**Eye/Iris Horizontal Signal Feasibility: PRELIMINARY PASS**
+
+The next development stage should focus on converting the raw iris-position signal into a calibrated, temporally robust gaze representation suitable for controlled fixation and saccade tasks.
