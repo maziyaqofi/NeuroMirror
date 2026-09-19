@@ -2550,3 +2550,480 @@ Remaining limitations include:
 - RGB webcam temporal and spatial limitations remain
 - detector behavior under variable baseline quality requires further
   independent data
+
+---
+
+## 2026-09-20 — Phase 1F: Vertical Gaze Geometry and Calibration Preparation
+
+### Objective
+
+Phase 1F began the preparation for the Experiment 01 gaze calibration
+and validation pipeline.
+
+The immediate objective was not to implement a final 9-point
+calibration model.
+
+Instead, this phase investigated whether the existing MediaPipe iris
+landmarks could provide a sufficiently stable vertical eye-geometry
+signal to support future two-dimensional gaze calibration.
+
+The work progressed through a sequence of increasingly controlled
+diagnostics:
+
+1. vertical iris geometry feasibility
+2. manual vertical direction testing
+3. fixed visual target validation
+4. synchronized visual target and gaze acquisition
+5. raw vertical signal analysis
+6. vertical eye-geometry quality investigation
+
+No calibration coefficients or numerical gaze-quality rejection
+thresholds were defined during this phase.
+
+---
+
+### Phase 1F.1A — Vertical Iris Geometry Feasibility
+
+A new diagnostic was created:
+
+`vertical_iris_geometry_check.py`
+
+Candidate landmarks:
+
+- left iris center: 473
+- left upper eyelid: 386
+- left lower eyelid: 374
+- right iris center: 468
+- right upper eyelid: 159
+- right lower eyelid: 145
+
+The experimental normalized vertical geometry signal was defined as:
+
+`(iris_y - y_min) / (y_max - y_min)`
+
+where `y_min` and `y_max` were derived from the upper and lower eyelid
+landmark coordinates.
+
+This signal was treated only as an experimental eye-geometry feature.
+
+It was not interpreted as a calibrated vertical gaze coordinate.
+
+Example runtime values demonstrated that the calculation could be
+performed continuously for both eyes.
+
+### Status
+
+**Phase 1F.1A vertical geometry computation: PRELIMINARY PASS.**
+
+This established computational feasibility only.
+
+It did not establish vertical gaze-direction accuracy.
+
+---
+
+### Phase 1F.1B — Controlled Manual Vertical Direction Check
+
+A second diagnostic was created:
+
+`vertical_iris_direction_check.py`
+
+Four manually controlled viewing conditions were recorded:
+
+1. CENTER
+2. TOP
+3. CENTER_REPEAT
+4. BOTTOM
+
+Each condition was recorded for approximately 5 seconds.
+
+Observed median average vertical ratios:
+
+- CENTER: 0.4465
+- TOP: 0.4288
+- CENTER_REPEAT: 0.4210
+- BOTTOM: 0.4180
+
+Although the initial CENTER-to-TOP transition produced a measurable
+change, CENTER_REPEAT did not return to the initial CENTER value.
+
+The subsequent CENTER_REPEAT-to-BOTTOM difference was also small.
+
+The two eyes additionally showed different absolute offsets.
+
+Because the visual targets were manually controlled and the repeated
+center condition was not stable, no reliable vertical direction
+mapping could be established from this test.
+
+### Status
+
+**Phase 1F.1B manual vertical direction discrimination: INCONCLUSIVE.**
+
+The diagnostic was preserved rather than tuned.
+
+---
+
+### Phase 1F.1C — Fixed Visual Target Diagnostic
+
+A PsychoPy-based fixed-target diagnostic was created:
+
+`vertical_visual_target_check.py`
+
+The existing NeuroMirror monitor configuration was used:
+
+- active display width: 28.5 cm
+- active display height: 17.8 cm
+- viewing distance: 52.5 cm
+
+A ±10° vertical target position was initially considered.
+
+Physical display geometry showed that the vertical half-height of the
+active display corresponds to approximately 9.62° from screen center.
+
+Therefore ±10° vertical eccentricity does not physically fit within
+the active display area at the locked 52.5 cm viewing distance.
+
+The vertical diagnostic eccentricity was changed to:
+
+- TOP: +8°
+- CENTER: 0°
+- BOTTOM: -8°
+
+The horizontal Experiment 01 target eccentricity remains ±10°.
+
+The following sequence was visually validated:
+
+1. CENTER_1
+2. TOP
+3. CENTER_2
+4. BOTTOM
+5. CENTER_3
+
+All ±8° vertical targets were visibly contained within the display.
+
+### Status
+
+**Phase 1F.1C fixed vertical target geometry: PRELIMINARY PASS.**
+
+The ±8° value is a display-geometry constraint for the current
+hardware configuration, not a biological or clinical parameter.
+
+---
+
+### Phase 1F.1D — Synchronized Vertical Visual Target and Gaze Acquisition
+
+A synchronized diagnostic was created:
+
+`vertical_visual_gaze_check.py`
+
+The architecture followed the previously validated threaded design:
+
+- PsychoPy stimulus presentation on the main thread
+- OpenCV + MediaPipe acquisition on a background thread
+- shared `core.Clock()` timestamp domain
+- `callOnFlip` stimulus event timestamps
+- camera timestamps recorded immediately after `cap.read()`
+
+The diagnostic used:
+
+- CENTER_1: 0°
+- TOP: +8°
+- CENTER_2: 0°
+- BOTTOM: -8°
+- CENTER_3: 0°
+
+Each condition lasted approximately 5 seconds.
+
+An acquisition readiness gate was used before stimulus execution.
+
+A successful recorded run produced:
+
+- 893 gaze samples
+- 893 valid face detections
+- 100% face detection
+- 5 synchronized stimulus events
+
+Raw files:
+
+`vertical_visual_gaze_20260920_052311.csv`
+
+`vertical_visual_events_20260920_052311.csv`
+
+Raw gaze data and stimulus events were preserved without smoothing,
+filtering, calibration correction, or outlier removal.
+
+### Status
+
+**Phase 1F.1D synchronized vertical acquisition: PRELIMINARY PASS.**
+
+This status applies to acquisition and synchronization only.
+
+It does not establish vertical gaze accuracy.
+
+---
+
+### Phase 1F.1D — Condition-Level Vertical Signal Analysis
+
+A separate analysis script was created:
+
+`vertical_visual_gaze_analysis.py`
+
+The recorded data were segmented using stimulus onset timestamps.
+
+Observed median average vertical ratios:
+
+- CENTER_1: 0.3998
+- TOP: 0.3901
+- CENTER_2: 0.3975
+- BOTTOM: 0.3951
+- CENTER_3: 0.3832
+
+CENTER_1 to TOP showed a change of approximately -0.0097.
+
+TOP to CENTER_2 showed a partial return of approximately +0.0074.
+
+However, CENTER_2 to BOTTOM changed by only approximately -0.0024
+and did not produce the expected clearly separable opposite-direction
+pattern.
+
+Per-eye analysis also showed disagreement during some conditions.
+
+For example, the CENTER_2-to-BOTTOM transition produced different
+changes in the left and right eye signals, which could be obscured by
+simple binocular averaging.
+
+### Status
+
+**Vertical direction discrimination from the current normalized
+vertical ratio: INCONCLUSIVE.**
+
+No calibration model was fitted from these data.
+
+---
+
+### Phase 1F.1D — Raw Time-Series Inspection
+
+A raw time-series diagnostic was created:
+
+`vertical_visual_gaze_timeseries.py`
+
+The visualization preserved the raw left-eye, right-eye, and averaged
+vertical ratios.
+
+No smoothing, filtering, outlier removal, baseline correction, or
+calibration transformation was applied.
+
+The raw signal revealed short episodes of extreme left-eye vertical
+ratio values.
+
+One episode extended across approximately frames 177–182 and another
+across approximately frames 542–545.
+
+The most extreme observed left-eye ratio was approximately:
+
+`-5.4629`
+
+while the simultaneously recorded right-eye signal remained much less
+extreme.
+
+Because the existing synchronized dataset did not store the upper and
+lower eyelid coordinates or vertical eye aperture, the cause of these
+episodes could not be determined from that dataset.
+
+They were therefore not labeled as blinks or automatically rejected.
+
+Possible contributors include eyelid movement, partial eye closure,
+landmark instability, head/eye geometry changes, or combinations of
+these factors.
+
+This observation motivated a dedicated eye-geometry quality
+diagnostic.
+
+---
+
+### Phase 1F.1E — Vertical Eye Geometry Quality Diagnostic
+
+A new diagnostic was created:
+
+`vertical_eye_geometry_quality_check.py`
+
+The purpose was to preserve the raw components used to calculate the
+vertical ratio.
+
+For each eye, the diagnostic recorded:
+
+- iris y-coordinate
+- upper eyelid y-coordinate
+- lower eyelid y-coordinate
+- vertical eye aperture
+- normalized vertical ratio
+
+No smoothing, filtering, clipping, rejection threshold, or blink
+classification was applied.
+
+Two independent approximately 10-second center-viewing recordings were
+collected.
+
+Run 1:
+
+`vertical_eye_geometry_quality_20260920_061217.csv`
+
+- 291 samples
+- 291 face detections
+- 100% face detection
+
+Run 2:
+
+`vertical_eye_geometry_quality_20260920_061404.csv`
+
+- 292 samples
+- 292 face detections
+- 100% face detection
+
+In both runs, very small left-eye aperture values coincided with some
+of the most extreme left-eye normalized vertical ratios.
+
+Examples included:
+
+- Run 1 minimum left aperture: 0.006505
+- corresponding extreme left ratio: approximately -0.2203
+
+and:
+
+- Run 2 minimum left aperture: 0.009939
+- corresponding extreme left ratio: approximately -0.3227
+
+The right-eye signal showed substantially less extreme behavior during
+the same diagnostics.
+
+These observations provide evidence that vertical eye geometry is
+relevant to signal-quality assessment.
+
+However, they do not establish that small aperture is the sole cause
+of vertical-ratio instability.
+
+---
+
+### Phase 1F.1E — Geometry Distribution Analysis
+
+A separate analysis script was created:
+
+`vertical_eye_geometry_quality_analysis.py`
+
+The aperture distributions differed substantially between the two
+independent runs.
+
+Median aperture values:
+
+Run 1:
+
+- LEFT: 0.024549
+- RIGHT: 0.025941
+
+Run 2:
+
+- LEFT: 0.040554
+- RIGHT: 0.040821
+
+This between-run difference indicates that an absolute aperture
+threshold should not be selected from the current limited data.
+
+The lower aperture tail remained more extreme for the left eye in both
+runs.
+
+Minimum apertures:
+
+Run 1:
+
+- LEFT: 0.006505
+- RIGHT: 0.017693
+
+Run 2:
+
+- LEFT: 0.009939
+- RIGHT: 0.020229
+
+---
+
+### Aperture–Ratio Deviation Association
+
+To characterize the relationship across the full recordings, the
+absolute deviation of each vertical ratio from its run-specific median
+was calculated.
+
+Spearman correlations between aperture and median-centered ratio
+deviation were:
+
+Run 1:
+
+- LEFT: rho = +0.0223, p = 0.7053
+- RIGHT: rho = -0.2615, p ≈ 6.14e-06
+
+Run 2:
+
+- LEFT: rho = -0.3344, p ≈ 4.63e-09
+- RIGHT: rho = -0.4352, p ≈ 6.31e-15
+
+The relationship was therefore not globally consistent across all
+eye/run combinations.
+
+In particular, Run 1 LEFT showed essentially no monotonic relationship
+across the complete recording despite containing a small number of
+extreme low-aperture frames.
+
+This suggests that the observed geometry-quality relationship may
+include nonlinear or lower-tail behavior that is not adequately
+described by a single whole-run monotonic correlation.
+
+The p-values are treated only as descriptive statistical evidence of
+association within these development recordings.
+
+They do not establish causality or population-level inference.
+
+---
+
+### Current Interpretation
+
+Phase 1F established that:
+
+- synchronized vertical stimulus and gaze acquisition is technically
+  feasible
+- ±8° vertical targets fit the locked physical display geometry
+- the current normalized vertical iris ratio does not yet provide
+  sufficiently demonstrated TOP/CENTER/BOTTOM discrimination
+- left-eye and right-eye vertical signals can behave differently
+- 100% face detection does not imply valid vertical gaze geometry
+- very small eye apertures can coincide with extreme normalized
+  vertical-ratio values
+- aperture distributions can shift substantially between independent
+  recordings
+- eye aperture is a promising quality-control feature but is not
+  sufficient by itself to define frame validity
+
+No numerical aperture threshold has been defined.
+
+No frames have been rejected from the raw datasets.
+
+No blink classification has been introduced.
+
+No calibration model has been fitted.
+
+The next analysis should investigate lower-tail aperture behavior
+directly before any quality-control rule is proposed.
+
+---
+
+### Status
+
+**Phase 1F vertical gaze/calibration preparation: IN PROGRESS.**
+
+Sub-phase status:
+
+- 1F.1A vertical geometry computation: PRELIMINARY PASS
+- 1F.1B manual vertical direction discrimination: INCONCLUSIVE
+- 1F.1C fixed vertical target geometry: PRELIMINARY PASS
+- 1F.1D synchronized acquisition: PRELIMINARY PASS
+- 1F.1D vertical direction discrimination: INCONCLUSIVE
+- 1F.1E eye-geometry quality investigation: PRELIMINARY PASS
+
+The final vertical calibration and validation procedure remains
+unimplemented.
