@@ -25,3 +25,5 @@ results/
 *.log
 # Development experiment logs
 event_log_*.csv
+
+.venv_experiment/
