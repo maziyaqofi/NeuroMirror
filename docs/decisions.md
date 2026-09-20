@@ -171,6 +171,7 @@ The experimental architecture will follow:
                   Timestamped Data
 
 ---
+```
 
 ## D006 — Use ±8° Vertical Target Eccentricity for Current Display Configuration
 
@@ -227,3 +228,49 @@ For the current Experiment 01 hardware configuration:
 
 If the display size or viewing distance changes, the usable visual-angle
 range must be recalculated before reusing this value.
+
+### D007 — Use Four Interior Targets for Initial Calibration Validation
+
+**Status:** Accepted
+
+The initial calibration-validation diagnostic will use four target
+positions that are not included in the 9-point calibration fitting set:
+
+- upper-left: (-5 deg, +4 deg)
+- upper-right: (+5 deg, +4 deg)
+- lower-left: (-5 deg, -4 deg)
+- lower-right: (+5 deg, -4 deg)
+
+All validation targets lie inside the calibrated visual region.
+
+The purpose is to evaluate interpolation to previously unseen target
+positions while avoiding extrapolation beyond the calibration grid.
+
+The linear calibration model fitted from the 9-point calibration data
+will remain unchanged during validation.
+
+Validation observations will not be used to refit or tune the model.
+
+For the initial development diagnostic, target duration remains 2.0 s
+and the provisional stable window remains target onset + 300 ms to the
+end of the target interval.
+
+### D008 — Use Horizontal Gaze as the Primary Task Measurement Axis in Experiment 01
+
+**Status:** Accepted
+
+Experiment 01 will use horizontal gaze behavior as the primary measurement axis for the prosaccade and antisaccade tasks.
+
+Both tasks use horizontal target positions at approximately -10 deg and +10 deg. The primary task measurements therefore depend on left-right gaze behavior rather than accurate two-dimensional gaze estimation.
+
+Development testing showed that horizontal iris geometry provides more consistent directional discrimination for left-right gaze responses.
+
+Independent calibration validation in Phase 1F.3 and same-session calibration validation in Phase 1F.4 showed substantially larger and less consistent errors in the vertical dimension.
+
+The 9-point calibration procedure will remain part of Experiment 01.
+
+Horizontal and vertical eye-geometry features will continue to be recorded for technical characterization and quality analysis. However, vertical gaze estimation will not be relied upon as the primary response measurement for prosaccade or antisaccade analysis.
+
+This decision does not establish that vertical gaze information is unusable. It limits the role of vertical gaze based on the current technical evidence from the RGB-camera measurement pipeline.
+
+Candidate gaze movement onset will continue to be interpreted relative to the software-recorded target onset and will not be described as clinical-grade saccadic latency.

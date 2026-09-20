@@ -1,0 +1,178 @@
+# NeuroMirror Experiment 01
+# Frozen Protocol Configuration
+#
+# Study:
+# 14-Day N-of-1 Eye/Gaze Measurement
+# Feasibility & Repeatability Pilot
+#
+# IMPORTANT:
+# This file documents the frozen Experiment 01 protocol.
+# Protocol parameters must not be changed during the 14-day
+# data-collection period without documenting a protocol deviation.
+
+protocol:
+  name: "NeuroMirror Experiment 01"
+  version: "1.0"
+  status: "frozen"
+  study_type: "14-Day N-of-1 Technical Feasibility and Repeatability Pilot"
+
+study:
+  participant_id: "NM01"
+  total_participants: 1
+  total_days: 14
+  sessions_per_day: 1
+  consecutive_days: true
+
+hardware:
+  computer: "MacBook Pro 13-inch 2019"
+  camera: "Built-in FaceTime HD RGB camera"
+  camera_index: 0
+  requested_camera_width_px: 1280
+  requested_camera_height_px: 720
+  requested_camera_fps: 30
+
+viewing_setup:
+  viewing_distance_cm: 52.5
+  active_display_width_cm: 28.5
+  active_display_height_cm: 17.8
+  head_position_reference: "Back/head referenced against wall"
+  laptop_position_reference: "Marked reproducible physical position"
+
+display:
+  monitor_name: "neuromirror_macbook"
+  psychopy_window_width_px: 1440
+  psychopy_window_height_px: 900
+  units: "deg"
+  background: "lightgray"
+
+acquisition:
+  architecture: "single_continuous_session"
+  camera_workers: 1
+  shared_experiment_clock: true
+  continuous_gaze_stream: true
+  unified_event_stream: true
+  primary_measurement_axis: "horizontal"
+
+calibration:
+  enabled: true
+  points: 9
+  target_duration_s: 2.0
+  horizontal_positions_deg:
+    - -10.0
+    - 0.0
+    - 10.0
+  vertical_positions_deg:
+    - -8.0
+    - 0.0
+    - 8.0
+
+validation:
+  enabled: true
+  points: 4
+  target_duration_s: 2.0
+  refit_calibration_model: false
+  positions_deg:
+    - [-5.0, 4.0]
+    - [5.0, 4.0]
+    - [-5.0, -4.0]
+    - [5.0, -4.0]
+
+fixation:
+  blocks: 3
+  duration_s: 10.0
+  rest_between_blocks_s: 3.0
+  target_x_deg: 0.0
+  target_y_deg: 0.0
+
+prosaccade:
+  trials: 20
+  left_trials: 10
+  right_trials: 10
+  max_consecutive_same_direction: 3
+  fixation_duration_s: 1.0
+  target_duration_s: 1.0
+  iti_min_s: 1.0
+  iti_max_s: 1.5
+  horizontal_eccentricity_deg: 10.0
+
+antisaccade:
+  trials: 20
+  left_trials: 10
+  right_trials: 10
+  max_consecutive_same_direction: 3
+  fixation_duration_s: 1.0
+  target_duration_s: 1.0
+  iti_min_s: 1.0
+  iti_max_s: 1.5
+  horizontal_eccentricity_deg: 10.0
+  response_rule:
+    left_target: "right"
+    right_target: "left"
+
+randomization:
+  strategy: "predetermined_per_day"
+  generated_before_day_1: true
+  modify_after_data_collection_starts: false
+
+data:
+  raw_data_editing_allowed: false
+  development_directory: "data/raw/development"
+  experiment_directory: "data/raw/experiment_01"
+  processed_directory: "data/processed"
+
+  participant_id: "NM01"
+
+  filename_pattern:
+    gaze: "NM01_D{day}_gaze_{timestamp}.csv"
+    events: "NM01_D{day}_events_{timestamp}.csv"
+    metadata: "NM01_D{day}_metadata_{timestamp}.csv"
+
+metadata:
+  required:
+    - participant_id
+    - study_day
+    - session_id
+    - session_datetime
+    - viewing_distance_cm
+    - camera_device
+    - requested_camera_resolution
+    - requested_camera_fps
+    - measured_camera_fps
+    - display_resolution
+    - prosaccade_seed
+    - antisaccade_seed
+    - prosaccade_iti_seed
+    - antisaccade_iti_seed
+    - session_status
+    - gaze_samples
+    - face_detection_rate
+    - notes
+
+analysis_scope:
+  primary:
+    - tracking_availability
+    - missing_frame_percentage
+    - fixation_stability
+    - prosaccade_response_direction
+    - antisaccade_response_direction
+    - candidate_gaze_movement_onset
+    - within_person_variability
+    - session_to_session_consistency
+    - repeatability
+
+  candidate_gaze_movement_onset_definition:
+    "Estimated gaze movement onset relative to software-recorded target onset."
+
+clinical_scope:
+  alzheimer_diagnosis: false
+  mci_diagnosis: false
+  disease_probability: false
+  clinical_risk_score: false
+  clinical_grade_saccadic_latency_claim: false
+  clinical_decision_support: false
+
+excluded_modalities_v1:
+  - speech_cognitive_biomarker
+  - rppg
+  - gait
+  - posture

@@ -3027,3 +3027,1223 @@ Sub-phase status:
 
 The final vertical calibration and validation procedure remains
 unimplemented.
+
+---
+
+### Phase 1F.1F — Lower-Tail Aperture Analysis
+
+The vertical eye-geometry analysis was extended to investigate whether
+extreme vertical-ratio deviations were disproportionately concentrated
+within the lower tail of the eye-aperture distribution.
+
+This analysis was descriptive only.
+
+The 5th and 10th aperture percentiles were used as distributional
+reference groups and were not defined as quality-control thresholds.
+
+For each eye and run, vertical-ratio deviation was calculated relative
+to the run-specific median ratio.
+
+#### Lower-Tail Median Deviation
+
+Run 1:
+
+- LEFT lowest 10% aperture:
+  median deviation = 0.069285
+- LEFT remaining 90%:
+  median deviation = 0.024670
+
+- RIGHT lowest 10% aperture:
+  median deviation = 0.018840
+- RIGHT remaining 90%:
+  median deviation = 0.017649
+
+Run 2:
+
+- LEFT lowest 10% aperture:
+  median deviation = 0.179994
+- LEFT remaining 90%:
+  median deviation = 0.019950
+
+- RIGHT lowest 10% aperture:
+  median deviation = 0.124451
+- RIGHT remaining 90%:
+  median deviation = 0.017246
+
+The magnitude of the lower-tail effect therefore varied substantially
+between eyes and recordings.
+
+---
+
+### Extreme-Deviation Concentration
+
+The top 10% most extreme median-centered vertical-ratio deviations were
+identified within each eye and recording.
+
+The proportion of these extreme samples occurring within the lowest
+10% of the aperture distribution was:
+
+Run 1:
+
+- LEFT: 50.0%
+- RIGHT: 16.7%
+
+Run 2:
+
+- LEFT: 93.3%
+- RIGHT: 90.0%
+
+For Run 2, the lowest 10% of aperture values contained a highly
+disproportionate fraction of the most extreme vertical-ratio
+deviations.
+
+However, the weaker effect observed for Run 1 RIGHT demonstrates that
+this relationship is not equally strong across all recordings and
+eyes.
+
+### Interpretation
+
+These results strengthen the evidence that eye aperture contains useful
+information about vertical gaze-signal quality.
+
+In particular, low-aperture states can contain a disproportionate
+concentration of extreme normalized vertical-ratio deviations.
+
+However, the relationship varies across eyes and recordings.
+
+Therefore:
+
+- eye aperture should be retained as a per-eye quality feature
+- left-eye and right-eye quality should remain separately observable
+- simple binocular averaging may conceal or propagate poor geometry
+  from one eye
+- no fixed aperture rejection threshold is justified by the current
+  two development recordings
+- the 5th and 10th percentile boundaries used here are analytical
+  reference groups, not rejection rules
+
+No raw samples were removed or modified during this analysis.
+
+### Status
+
+**Phase 1F.1F lower-tail aperture investigation: PRELIMINARY PASS.**
+
+The aperture investigation is considered sufficient for the current
+development stage.
+
+Further aperture-threshold development is deferred until additional
+independent data are available.
+
+The next development objective returns to the primary Phase 1F goal:
+implementation of the 9-point gaze calibration and validation
+pipeline.
+
+---
+
+### Phase 1F.2A — 9-Point Calibration Target Layout Check
+
+A visual diagnostic was implemented to verify the proposed
+9-point calibration target geometry before integrating gaze acquisition.
+
+File:
+
+`experiments/experiment_01_eye_gaze/src/calibration_9point_target_check.py`
+
+The calibration grid used:
+
+- horizontal positions: -10°, 0°, +10°
+- vertical positions: -8°, 0°, +8°
+
+This produced the following 9 target locations:
+
+- TOP_LEFT: (-10°, +8°)
+- TOP_CENTER: (0°, +8°)
+- TOP_RIGHT: (+10°, +8°)
+- MIDDLE_LEFT: (-10°, 0°)
+- CENTER: (0°, 0°)
+- MIDDLE_RIGHT: (+10°, 0°)
+- BOTTOM_LEFT: (-10°, -8°)
+- BOTTOM_CENTER: (0°, -8°)
+- BOTTOM_RIGHT: (+10°, -8°)
+
+The horizontal eccentricity follows the existing ±10° gaze-task
+geometry.
+
+The vertical eccentricity follows Decision D006, which uses ±8°
+because ±10° does not fit the current physical display geometry
+with sufficient margin.
+
+For this diagnostic only, each target was displayed for 2 seconds
+in a deterministic row-by-row sequence.
+
+Runtime verification confirmed that all 9 targets were presented.
+
+Visual inspection confirmed that the complete 3×3 target layout was
+visible on the current display configuration.
+
+The 2-second duration and row-by-row sequence are diagnostic
+parameters only and are not yet frozen as the final calibration
+collection protocol.
+
+No gaze data were collected during this test.
+
+No calibration model was fitted.
+
+No calibration accuracy or validation criterion was evaluated.
+
+### Status
+
+**Phase 1F.2A 9-point calibration target layout: PRELIMINARY PASS.**
+
+The next step is to integrate synchronized per-eye gaze acquisition
+with the 9-point target sequence.
+
+## Phase 1F.2C — Initial Linear Calibration Mapping
+
+A development diagnostic was implemented to evaluate whether robust
+eye-geometry observations from the 9-point calibration sequence could
+be mapped to known visual target coordinates.
+
+### Calibration observations
+
+The provisional stable window remained:
+
+- start: target onset + 300 ms
+- end: next target onset
+- aggregation: median
+- calibration observations: 9
+
+Input features:
+
+- left horizontal iris ratio
+- right horizontal iris ratio
+- left vertical iris ratio
+- right vertical iris ratio
+
+Targets:
+
+- horizontal visual angle (deg)
+- vertical visual angle (deg)
+
+No binocular averaging or aperture-based rejection was applied.
+
+### Linear mapping
+
+A multivariate affine mapping was fitted using an explicit intercept
+and the four per-eye geometry features.
+
+The design matrix had:
+
+- observations: 9
+- parameters per output: 5
+- rank: 5
+
+Singular values:
+
+- 4.045721
+- 0.216780
+- 0.159911
+- 0.032352
+- 0.018471
+
+The matrix was full rank, although the singular-value spread indicates
+that feature redundancy / numerical conditioning should remain under
+observation.
+
+### In-sample residual diagnostic
+
+Using the same nine calibration observations for fitting and
+evaluation:
+
+- mean 2D residual: 1.185 deg
+- median 2D residual: 0.927 deg
+- maximum 2D residual: 3.595 deg
+
+The largest residual occurred at the CENTER target and was primarily
+vertical.
+
+Horizontal mapping showed comparatively structured behavior, while
+vertical mapping retained larger spatial variation.
+
+### Interpretation
+
+The 9-point eye-geometry observations can be mapped to target
+coordinates using a simple linear model.
+
+However, these residuals are in-sample fitting diagnostics only.
+
+They must NOT be interpreted as:
+
+- calibration validation accuracy
+- gaze-estimation accuracy on unseen targets
+- repeatability across calibration runs
+- clinical-grade eye-tracking accuracy
+
+No polynomial model, parameter tuning, or model-selection procedure was
+performed based on the current nine observations.
+
+### Status
+
+**Phase 1F.2C — PRELIMINARY PASS**
+
+The next step is an independent calibration-validation diagnostic using
+target positions that are not used during model fitting.
+
+## Phase 1F.3 — Independent Calibration Validation
+
+### Phase 1F.3A — Validation Acquisition
+
+Four interior validation targets were acquired:
+
+- UPPER_LEFT: (-5°, +4°)
+- UPPER_RIGHT: (+5°, +4°)
+- LOWER_LEFT: (-5°, -4°)
+- LOWER_RIGHT: (+5°, -4°)
+
+The validation run recorded 356 gaze samples with face detection
+available for all recorded samples. Each target produced 60 segmented
+samples and 51 samples within the provisional stable window
+(target onset + 300 ms to target end).
+
+The validation data were not used to refit or tune the calibration model.
+
+### Phase 1F.3B — Frozen-Model Validation
+
+The linear calibration model was reconstructed exclusively from the
+independent 9-point calibration dataset.
+
+Model verification reproduced the Phase 1F.2C result:
+
+- Calibration observations: 9
+- Design matrix rank: 5
+- Singular values:
+  [4.0457207, 0.21677952, 0.15991127, 0.03235243, 0.01847124]
+
+The frozen model was then applied without refitting to the four unseen
+interior validation targets.
+
+Validation errors:
+
+- UPPER_LEFT: 5.37° 2D error
+- UPPER_RIGHT: 1.38° 2D error
+- LOWER_LEFT: 5.94° 2D error
+- LOWER_RIGHT: 1.98° 2D error
+
+Summary:
+
+- Mean 2D error: 3.668°
+- Median 2D error: 3.677°
+- Maximum 2D error: 5.941°
+- Mean absolute X error: 0.869°
+- Mean absolute Y error: 3.354°
+
+Horizontal prediction was substantially more consistent than vertical
+prediction in this development run. The two left-side validation
+targets showed the largest vertical errors.
+
+### Phase 1F.3C — Calibration–Validation Geometry Diagnostic
+
+A separate diagnostic compared validation eye-geometry features with
+feature values expected from bilinear interpolation of the 9-point
+calibration grid.
+
+The diagnostic did not modify the frozen calibration model and did not
+use validation observations for model fitting.
+
+Decomposition of geometry shifts through the frozen Y coefficients
+showed:
+
+- UPPER_LEFT: +4.71° predicted Y shift
+- UPPER_RIGHT: -1.51°
+- LOWER_LEFT: +5.08°
+- LOWER_RIGHT: +0.32°
+
+The large shifts at the two left-side targets were primarily associated
+with horizontal-feature contributions to the Y output rather than a
+simple isolated shift in the vertical features.
+
+This indicates substantial cross-axis sensitivity in the current
+four-feature linear calibration mapping. Small between-run changes in
+horizontal eye geometry can produce comparatively large changes in
+predicted vertical position because the frozen Y mapping contains large
+horizontal-feature coefficients.
+
+This diagnostic does not establish the physical cause of the geometry
+shift. Possible contributors such as head position, eye-camera geometry,
+or other between-run configuration changes remain untested.
+
+The calibration and validation datasets were also collected in separate
+development runs several hours apart. Therefore, this result should be
+interpreted as an independent later-run model-transfer diagnostic rather
+than a pure same-session interpolation accuracy measurement.
+
+No model tuning, polynomial mapping, sample rejection, or validation-
+driven parameter adjustment was performed.
+
+**Phase 1F.3 status: PRELIMINARY PASS for independent validation
+pipeline implementation; calibration accuracy remains limited,
+particularly in the vertical dimension.**
+
+## Phase 1F.4 — Same-Session Calibration–Validation Check
+
+### Objective
+
+Evaluate whether the large vertical validation errors observed in Phase 1F.3 were primarily attributable to between-run geometry changes by performing calibration and validation consecutively within the same acquisition session.
+
+### Method
+
+A single continuous acquisition session was performed using the existing RGB webcam and MediaPipe eye geometry pipeline.
+
+The session consisted of:
+
+- 9 calibration targets:
+  - horizontal eccentricity: ±10°
+  - vertical eccentricity: ±8°
+- 4 independent interior validation targets:
+  - upper-left: (-5°, +4°)
+  - upper-right: (+5°, +4°)
+  - lower-left: (-5°, -4°)
+  - lower-right: (+5°, -4°)
+
+Calibration and validation were performed consecutively without restarting the camera acquisition pipeline.
+
+A stable analysis window beginning 300 ms after each target onset was used. Median values of four eye-geometry features were calculated:
+
+- left horizontal iris ratio
+- right horizontal iris ratio
+- left vertical iris ratio
+- right vertical iris ratio
+
+The affine calibration model was fitted using only the nine calibration targets. The four validation targets were not used for model fitting or tuning.
+
+### Acquisition Result
+
+Development run:
+
+- gaze samples: 884
+- face detected: 884 / 884 (100%)
+- stimulus events: 13
+- calibration events: 9
+- validation events: 4
+- stable samples per target: 51–52
+
+The complete calibration–validation acquisition pipeline executed successfully.
+
+### Calibration Model
+
+The calibration design matrix retained full rank:
+
+- observations: 9
+- parameters per output: 5
+- rank: 5
+
+Singular values:
+
+- 4.138377
+- 0.183299
+- 0.103032
+- 0.061543
+- 0.013962
+
+No polynomial mapping, validation-based tuning, sample rejection, or post-hoc model adjustment was applied.
+
+### Independent Validation Results
+
+Validation errors:
+
+| Point | Error X | Error Y | 2D Error |
+|---|---:|---:|---:|
+| Upper Left | +1.10° | -8.82° | 8.89° |
+| Upper Right | -0.91° | -3.81° | 3.92° |
+| Lower Left | -0.37° | +1.90° | 1.94° |
+| Lower Right | -2.22° | +1.02° | 2.44° |
+
+Summary:
+
+- mean absolute X error: 1.146°
+- mean absolute Y error: 3.888°
+- mean 2D error: 4.295°
+- median 2D error: 3.179°
+- maximum 2D error: 8.885°
+
+### Interpretation
+
+Same-session acquisition did not eliminate the vertical validation limitation observed previously.
+
+Horizontal mapping remained comparatively more consistent, while vertical errors were substantially larger and heterogeneous across validation locations. The largest error occurred at the upper-left validation point and was dominated by the vertical component.
+
+Because calibration and validation were collected consecutively within the same acquisition session, between-run geometry changes alone are insufficient to explain the previously observed vertical validation errors.
+
+The current four-feature affine mapping therefore remains limited for accurate two-dimensional gaze estimation, particularly in the vertical dimension.
+
+This result does not establish the physical cause of the error. Possible contributions from eyelid geometry, head/eye interaction, feature coupling, model specification, or RGB-camera limitations remain unresolved.
+
+The four validation targets were not used for model tuning.
+
+### Status
+
+**PRELIMINARY PASS — same-session calibration–validation pipeline successfully demonstrated; vertical calibration accuracy remains limited.**
+
+## Phase 1G.1 — Antisaccade + Gaze Integration
+
+### Objective
+
+Integrate the existing antisaccade stimulus protocol with synchronized
+camera-based horizontal gaze acquisition and evaluate whether the frozen
+development movement detector can identify sustained gaze movement in the
+expected antisaccade direction.
+
+This phase is an engineering integration test and does not evaluate clinical
+antisaccade performance.
+
+### Implementation
+
+The existing prosaccade + gaze integration architecture was adapted for the
+antisaccade task.
+
+Each trial records both:
+
+- `target_direction`
+- `expected_response_direction`
+
+The expected response direction is defined as the direction opposite the
+peripheral target:
+
+- target LEFT → expected response RIGHT
+- target RIGHT → expected response LEFT
+
+The existing horizontal iris signal orientation was independently
+re-verified before interpreting the antisaccade data:
+
+- gaze LEFT → higher iris ratio
+- gaze RIGHT → lower iris ratio
+
+The frozen development movement detector v0.1 was used without parameter
+modification:
+
+- threshold multiplier: 6 × baseline MAD
+- persistence: 3 consecutive samples
+
+Detector direction was set to `expected_response_direction`, not
+`target_direction`.
+
+The detected timing remains a candidate gaze movement onset relative to
+software-recorded target onset and must not be interpreted as clinical
+saccadic latency.
+
+### Instruction Verification
+
+An initial development run revealed target-directed responses despite correct
+event encoding.
+
+The antisaccade instruction screen was therefore clarified to explicitly state:
+
+- if the dot appears on the LEFT, look to the empty RIGHT side
+- if the dot appears on the RIGHT, look to the empty LEFT side
+- do not follow the peripheral dot
+
+A four-trial smoke test was then performed before the full 20-trial run.
+
+### Four-Trial Verification Run
+
+Development run:
+
+- trials: 4
+- gaze samples: 432
+- face detected: 432 / 432 (100%)
+- stimulus events: 20
+- expected-direction late responses: 4 / 4
+- frozen detector expected-direction detections: 4 / 4
+
+Candidate expected-direction movement onsets:
+
+| Trial | Target | Expected | Candidate Onset |
+|---|---|---|---:|
+| 1 | LEFT | RIGHT | 725.8 ms |
+| 2 | RIGHT | LEFT | 421.4 ms |
+| 3 | LEFT | RIGHT | 487.0 ms |
+| 4 | RIGHT | LEFT | 432.7 ms |
+
+Temporal inspection showed that a simple sign-based median classification can
+be misleading when displacement remains close to baseline before a later
+larger movement.
+
+Trial 2 also showed an initial target-direction signal followed by a sustained
+movement in the expected antisaccade direction. No formal behavioral
+classification was assigned.
+
+### Twenty-Trial Development Run
+
+Run identifier:
+
+`20260920_144854`
+
+Acquisition result:
+
+- trials: 20
+- target LEFT: 10
+- target RIGHT: 10
+- gaze samples: 2016
+- face detected: 2016 / 2016 (100%)
+- stimulus events: 100
+- expected-direction detections: 18 / 20
+
+Raw development files:
+
+- `data/raw/development/antisaccade_20trial_gaze_20260920_144854.csv`
+- `data/raw/development/antisaccade_20trial_events_20260920_144854.csv`
+
+Frozen detector candidate expected-direction movement onsets:
+
+| Trial | Target | Expected | Candidate Onset |
+|---|---|---|---:|
+| 1 | RIGHT | LEFT | NONE |
+| 2 | RIGHT | LEFT | 399.3 ms |
+| 3 | RIGHT | LEFT | 312.7 ms |
+| 4 | LEFT | RIGHT | 544.3 ms |
+| 5 | LEFT | RIGHT | 491.9 ms |
+| 6 | RIGHT | LEFT | 422.5 ms |
+| 7 | RIGHT | LEFT | 621.8 ms |
+| 8 | LEFT | RIGHT | 399.5 ms |
+| 9 | LEFT | RIGHT | 479.8 ms |
+| 10 | LEFT | RIGHT | NONE |
+| 11 | RIGHT | LEFT | 372.6 ms |
+| 12 | LEFT | RIGHT | 368.9 ms |
+| 13 | RIGHT | LEFT | 852.3 ms |
+| 14 | LEFT | RIGHT | 546.4 ms |
+| 15 | RIGHT | LEFT | 425.3 ms |
+| 16 | RIGHT | LEFT | 523.2 ms |
+| 17 | RIGHT | LEFT | 487.5 ms |
+| 18 | LEFT | RIGHT | 599.3 ms |
+| 19 | LEFT | RIGHT | 413.1 ms |
+| 20 | LEFT | RIGHT | 475.9 ms |
+
+### Inspection of Non-Detections
+
+Trials 1 and 10 were inspected separately because the frozen detector returned
+no expected-direction candidate movement.
+
+Trial 1:
+
+- target: RIGHT
+- expected response: LEFT
+- baseline median: 0.4978
+- baseline MAD: 0.0015
+- detector threshold: 0.0092
+- approximately 300–1000 ms: sustained negative displacement of about
+  -0.04
+
+Because lower iris ratio corresponds to gaze RIGHT, the signal was strongly
+target-directed rather than expected-direction.
+
+Trial 10:
+
+- target: LEFT
+- expected response: RIGHT
+- baseline median: 0.4978
+- baseline MAD: 0.0011
+- detector threshold: 0.0066
+- approximately 300–800 ms: sustained positive displacement of about
+  +0.02 to +0.03
+
+Because higher iris ratio corresponds to gaze LEFT, the signal was again
+target-directed rather than expected-direction.
+
+Therefore, the two detector non-detections were not caused by missing face
+tracking. Both trials contained clear horizontal gaze signals, but the
+sustained movement was in the target direction rather than the expected
+antisaccade direction.
+
+No detector thresholds or persistence parameters were changed after inspecting
+these trials.
+
+### Interpretation
+
+The antisaccade stimulus, event semantics, synchronized gaze acquisition,
+expected-response encoding, horizontal gaze orientation, and frozen movement
+detector were successfully integrated.
+
+The full development run demonstrated expected-direction candidate movement
+detection in 18 of 20 trials without post-hoc detector tuning.
+
+The two non-detected trials contained measurable target-directed gaze movement
+rather than absent tracking. They are therefore preserved as development
+observations and are not automatically classified as technical failures,
+missing data, or clinical antisaccade errors.
+
+Face detection rate alone is not treated as a measure of gaze quality.
+
+No clinical interpretation is made from the observed response pattern.
+
+### Status
+
+**PASS — Phase 1G.1 antisaccade + gaze engineering integration successfully demonstrated.**
+
+The frozen detector remains unchanged.
+
+Next development phase:
+
+**Phase 1G.2 — Fixation + Gaze Integration**
+---
+
+## Phase 1G.2 — Fixation + Gaze Integration
+
+### Objective
+
+Integrate the existing three-block fixation task with the synchronized gaze
+acquisition pipeline used in the prosaccade and antisaccade development phases.
+
+The purpose of this phase was to verify that horizontal iris signals can be
+recorded continuously during repeated 10-second central fixation blocks while
+stimulus events and gaze samples share the same experiment clock.
+
+This phase evaluates engineering integration only.
+
+No clinical interpretation or fixation-quality threshold is defined.
+
+### Implementation
+
+A new integration script was created:
+
+- `experiments/experiment_01_eye_gaze/src/fixation_gaze_check.py`
+
+The original Phase 1C reference implementation was preserved:
+
+- `experiments/experiment_01_eye_gaze/src/fixation_block_check.py`
+
+The integrated implementation includes:
+
+- background camera acquisition
+- MediaPipe Face Mesh with refined iris landmarks
+- left and right normalized horizontal iris ratios
+- average horizontal iris ratio
+- shared `experiment_clock`
+- gaze acquisition readiness check
+- synchronized PsychoPy stimulus events using `win.callOnFlip()`
+- three 10-second fixation blocks
+- two 3-second rest periods
+- separate raw gaze and event CSV output
+
+A separate diagnostic analysis script was also created:
+
+- `experiments/experiment_01_eye_gaze/src/fixation_gaze_analysis.py`
+
+The analysis script reads the raw files without modifying them and summarizes
+the gaze samples contained within each fixation event window.
+
+### Development Run
+
+Run timestamp:
+
+`20260920_163415`
+
+Raw development files:
+
+- `data/raw/development/fixation_gaze_20260920_163415.csv`
+- `data/raw/development/fixation_events_20260920_163415.csv`
+
+Run summary:
+
+- status: COMPLETED
+- total gaze samples: 1093
+- face detected: 1089 / 1093
+- overall face detection rate: 99.63%
+- stimulus events: 10
+
+The 10 recorded events corresponded to:
+
+- 3 fixation onset events
+- 3 fixation offset events
+- 2 rest onset events
+- 2 rest offset events
+
+### Event Timing Verification
+
+Event timestamps produced the following durations:
+
+| Segment | Duration |
+|---|---:|
+| Fixation Block 1 | 10.0232 s |
+| Rest 1 | 3.0168 s |
+| Fixation Block 2 | 10.0332 s |
+| Rest 2 | 3.0333 s |
+| Fixation Block 3 | 10.0332 s |
+
+Event ordering was correct and no expected fixation/rest event was missing.
+
+The small difference between the local fixation timer values printed during the
+run and the event-derived durations is expected because the offset event is
+recorded on the subsequent PsychoPy display flip.
+
+For gaze synchronization and later processing, the shared-clock event
+timestamps are treated as the relevant task boundaries.
+
+### Fixation-Window Gaze Analysis
+
+All three fixation windows contained 300 gaze samples.
+
+| Block | Duration | Samples | Approx. Rate | Face Detected | Usable Iris |
+|---|---:|---:|---:|---:|---:|
+| 1 | 10.0232 s | 300 | 29.93 Hz | 300 / 300 | 300 / 300 |
+| 2 | 10.0332 s | 300 | 29.90 Hz | 300 / 300 | 300 / 300 |
+| 3 | 10.0332 s | 300 | 29.90 Hz | 300 / 300 | 300 / 300 |
+
+Therefore, within the actual fixation task windows:
+
+- face detection availability: 900 / 900 samples
+- usable average iris ratio: 900 / 900 samples
+- fixation-window usable acquisition rate: 100%
+
+The four samples without face detection in the complete session occurred
+outside the three analyzed fixation windows.
+
+### Horizontal Iris Signal Characterization
+
+| Block | Mean | Median | SD | MAD | IQR | Minimum | Maximum |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 0.499566 | 0.502571 | 0.009892 | 0.006530 | 0.014611 | 0.472225 | 0.516835 |
+| 2 | 0.508622 | 0.510477 | 0.006724 | 0.002302 | 0.004782 | 0.483260 | 0.517980 |
+| 3 | 0.494431 | 0.494972 | 0.005158 | 0.003328 | 0.006713 | 0.474358 | 0.507099 |
+
+These values characterize the observed within-block and between-block signal
+variation in this development run.
+
+No numerical stability threshold is inferred from this single run.
+
+No detector or gaze-processing parameter was tuned based on these values.
+
+### Interpretation
+
+The fixation stimulus, synchronized event logging, background gaze acquisition,
+horizontal iris signal extraction, raw data saving, and fixation-window
+analysis were successfully integrated.
+
+The acquisition rate remained approximately 30 Hz across all three fixation
+blocks.
+
+All 900 gaze samples recorded within the three fixation windows contained
+usable horizontal iris measurements.
+
+Differences in median iris ratio and within-block variability were observed
+between blocks. These differences are preserved as development observations
+rather than treated as failures or used to define acceptance thresholds.
+
+Repeated measurements across future sessions are required before within-person
+repeatability or baseline variability can be characterized.
+
+Face detection rate alone is not treated as a measure of gaze quality.
+
+No clinical interpretation is made from the fixation measurements.
+
+### Status
+
+**PASS — Phase 1G.2 fixation + gaze engineering integration successfully demonstrated.**
+
+No fixation-stability threshold has been defined.
+
+Next development phase:
+
+**Phase 1G.3 — Combine Task Modules**
+
+---
+
+## Phase 1G.3 — Combined Task Module Integration
+
+### Objective
+
+Integrate the fixation, prosaccade, and antisaccade task modules into a single
+development session while preserving one continuous acquisition architecture.
+
+The purpose of this phase was to verify that the three task modules could run
+sequentially using:
+
+- one PsychoPy window,
+- one background camera / MediaPipe worker,
+- one shared experiment clock,
+- one continuous gaze stream,
+- one unified stimulus-event stream,
+- and one paired gaze/event output.
+
+Calibration and calibration validation were intentionally excluded from this
+phase and remain part of the subsequent full-session integration stage.
+
+This phase evaluates engineering integration and synchronization only. It does
+not evaluate clinical performance or define behavioral acceptance criteria.
+
+### Implementation
+
+A new combined development runner was implemented in:
+
+`experiments/experiment_01_eye_gaze/src/combined_task_gaze_check.py`
+
+The runner reused the existing acquisition and task architecture rather than
+launching the fixation, prosaccade, and antisaccade scripts independently.
+
+The smoke-test sequence was:
+
+1. initialize one PsychoPy window,
+2. start one continuous gaze-acquisition worker,
+3. wait for gaze acquisition readiness,
+4. run one 3-second fixation development block,
+5. run four randomized prosaccade trials,
+6. display a task-transition screen,
+7. display explicit antisaccade instructions,
+8. run four randomized antisaccade trials,
+9. stop the same gaze worker,
+10. save one continuous gaze CSV and one unified event CSV.
+
+The 3-second fixation block was used only for the development smoke test and
+does not modify the Experiment 01 protocol, which retains three 10-second
+fixation blocks.
+
+Development-only randomization used separate fixed seeds:
+
+- Prosaccade seed: `20260920`
+- Antisaccade seed: `20260921`
+
+The resulting sequences were:
+
+- Prosaccade: RIGHT, LEFT, LEFT, RIGHT
+- Antisaccade: RIGHT, RIGHT, LEFT, LEFT
+
+### Development Run
+
+Run timestamp:
+
+`20260920_172626`
+
+Output files:
+
+- `combined_smoke_gaze_20260920_172626.csv`
+- `combined_smoke_events_20260920_172626.csv`
+
+Terminal summary:
+
+- Status: COMPLETED
+- Gaze samples: 1661
+- Face detected: 1661
+- Overall face detection rate: 100.00%
+- Stimulus events: 42
+- Fixation events: 2
+- Prosaccade events: 20
+- Antisaccade events: 20
+
+Face detection rate is reported only as an acquisition diagnostic and is not
+treated as a measure of gaze quality.
+
+### Unified Event Timeline Verification
+
+The unified event file contained the expected 42 events:
+
+- fixation: 2 events,
+- prosaccade: 4 trials × 5 events = 20 events,
+- antisaccade: 4 trials × 5 events = 20 events.
+
+The fixation development block was recorded from:
+
+- fixation onset: `5.452008 s`
+- fixation offset: `8.472681 s`
+
+Observed event duration was approximately `3.021 s`.
+
+Each prosaccade and antisaccade trial preserved the expected event order:
+
+`fixation_onset -> target_onset -> target_offset / iti_onset -> iti_offset`
+
+Prosaccade target eccentricity was correctly encoded as:
+
+- RIGHT: `+10 deg`
+- LEFT: `-10 deg`
+
+Antisaccade event semantics were also preserved:
+
+- RIGHT target -> expected LEFT response
+- LEFT target -> expected RIGHT response
+
+The antisaccade target eccentricities remained tied to the physical target
+location rather than the expected response direction.
+
+All event timestamps increased monotonically within one shared timeline.
+
+### Continuous Gaze Stream Verification
+
+The gaze output contained 1661 sequential samples.
+
+Continuity inspection showed:
+
+- first frame: 1
+- last frame: 1661
+- frame breaks: 0
+- timestamp reversals: 0
+
+A long interactive interval occurred between the end of the prosaccade block
+and the beginning of the antisaccade block while the participant viewed the
+transition and instruction screens.
+
+Within the inspected interval from approximately `25.5 s` to `48.2 s`, the
+continuous gaze stream contained 678 samples.
+
+Example frame progression across this interval included:
+
+- frame 611 near the beginning,
+- frame 950 during the transition,
+- frame 1288 near the end.
+
+This confirms that the gaze-acquisition worker remained active across the task
+transition and that the camera stream was not restarted between prosaccade and
+antisaccade.
+
+### Interpretation
+
+The fixation, prosaccade, and antisaccade modules were successfully combined
+within one continuous engineering session.
+
+The development run demonstrated:
+
+- one continuous camera worker across all three tasks,
+- one shared experiment-clock timeline,
+- uninterrupted gaze-frame numbering,
+- monotonically increasing gaze timestamps,
+- unified task-specific event logging,
+- correct prosaccade target semantics,
+- correct antisaccade target/expected-response semantics,
+- and paired continuous gaze/event output.
+
+This phase does not independently assess behavioral performance on the eight
+saccade trials. Prosaccade and antisaccade gaze-response behavior had already
+been evaluated during their respective task-specific development phases.
+
+The 100% face-detection rate does not imply 100% gaze quality.
+
+No gaze-processing parameter, movement-detector parameter, or behavioral
+threshold was changed based on this combined smoke test.
+
+No clinical interpretation is made from this development run.
+
+### Status
+
+**PASS — Phase 1G.3 combined task engineering integration successfully demonstrated.**
+
+The combined runner maintained one continuous gaze and event timeline across
+fixation, prosaccade, task transition, and antisaccade.
+
+Next development phase:
+
+**Phase 1G.4 — Full-Session Runner**
+
+---
+
+## Phase 1G.4–1G.5 — Full-Session Integration and End-to-End Verification
+
+### Objective
+
+Integrate and verify the complete Experiment 01 development session within one
+continuous acquisition architecture.
+
+The full-session sequence was:
+
+1. gaze acquisition readiness,
+2. 9-point calibration,
+3. 4-point validation,
+4. three 10-second fixation blocks,
+5. 20 randomized prosaccade trials,
+6. 20 randomized antisaccade trials,
+7. unified raw-data saving.
+
+The session used one PsychoPy window, one camera / MediaPipe worker, one shared
+experiment clock, one continuous gaze stream, and one unified event timeline.
+
+### Development Run
+
+Run timestamp:
+
+`20260920_173801`
+
+Output files:
+
+- `full_session_gaze_20260920_173801.csv`
+- `full_session_events_20260920_173801.csv`
+
+Terminal status:
+
+`COMPLETED`
+
+The acquisition produced:
+
+- 7601 gaze samples,
+- 7601 / 7601 samples with face detection,
+- 100.00% overall face-detection rate,
+- 236 stimulus events.
+
+Face detection rate is treated only as an acquisition diagnostic and not as a
+measure of gaze quality.
+
+### Event Structure
+
+Observed event counts:
+
+- calibration: 18 events,
+- validation: 8 events,
+- fixation: 10 events,
+- prosaccade: 100 events,
+- antisaccade: 100 events.
+
+The calibration count corresponds to onset and offset events for all 9
+calibration targets.
+
+The validation count corresponds to onset and offset events for all 4
+validation targets.
+
+The fixation count corresponds to three fixation onset/offset pairs and two
+inter-block rest onset/offset pairs.
+
+Both saccade tasks contained all expected trial events:
+
+- prosaccade: 20 / 20 structurally complete trials,
+- antisaccade: 20 / 20 structurally complete trials.
+
+No antisaccade target-to-expected-response mapping errors were detected.
+
+### Fixation Timing
+
+Observed fixation durations were:
+
+- Block 1: 10.0186 s
+- Block 2: 10.0334 s
+- Block 3: 10.0331 s
+
+These values are consistent with the intended 10-second fixation duration
+within the observed software/display timing resolution.
+
+### Continuous Acquisition Verification
+
+The gaze stream contained:
+
+- first frame: 1,
+- last frame: 7601,
+- frame breaks: 0,
+- gaze timestamp reversals: 0.
+
+The event stream contained:
+
+- total events: 236,
+- event timestamp reversals: 0.
+
+The recorded gaze interval extended from approximately:
+
+- first gaze timestamp: 5.0406 s
+- last gaze timestamp: 259.5240 s
+
+Total recorded gaze duration was approximately:
+
+`254.48 s`
+
+These results demonstrate uninterrupted acquisition across calibration,
+validation, fixation, prosaccade, task transitions, and antisaccade.
+
+### Interpretation
+
+The complete Experiment 01 task sequence was successfully executed within one
+continuous engineering session.
+
+The run demonstrates:
+
+- continuous camera acquisition,
+- continuous gaze-frame numbering,
+- monotonic gaze timestamps,
+- monotonic event timestamps,
+- complete calibration and validation presentation,
+- three complete fixation blocks,
+- 20 structurally complete prosaccade trials,
+- 20 structurally complete antisaccade trials,
+- correct antisaccade event semantics,
+- and unified raw gaze/event output.
+
+Trial completeness refers to stimulus and event structure. It does not imply
+that every participant gaze response was behaviorally correct.
+
+The 100% face-detection rate does not imply 100% gaze quality.
+
+No clinical interpretation is made from this development run.
+
+No Alzheimer disease, MCI, or clinical-risk inference is performed.
+
+### Status
+
+**PASS — Phase 1G.4 full-session integration successfully demonstrated.**
+
+**PASS — Phase 1G.5 end-to-end engineering verification successfully completed.**
+
+The core Experiment 01 acquisition pipeline is now ready to proceed toward
+protocol freeze and final dry-run validation.
+
+Next development stage:
+
+**Protocol Freeze → Final Dry Run → Experiment 01 Day 1**
+
+---
+
+## Experiment 01 — Protocol v1.0 Freeze
+
+### Final Dry Run
+
+Final dry run timestamp:
+
+`20260920_183224`
+
+Runner:
+
+`experiment_01_runner.py --day 1 --dry-run`
+
+The final experiment runner successfully completed the complete Experiment 01
+session using the predetermined Day 01 randomization configuration.
+
+Observed output:
+
+- status: COMPLETED
+- gaze samples: 7297
+- face detected: 7297 / 7297
+- face-detection rate: 100.00%
+- calibration events: 18
+- validation events: 8
+- fixation events: 10
+- prosaccade events: 100
+- antisaccade events: 100
+- total stimulus events: 236
+
+The runner successfully generated separate gaze, event, and session-metadata
+files inside the dry-run dataset directory.
+
+The dry run did not write into the official Experiment 01 dataset.
+
+### Frozen Randomization
+
+A predetermined 14-day randomization schedule was generated before official
+data collection.
+
+Each study day has fixed seeds for:
+
+- prosaccade direction sequence,
+- prosaccade ITI sequence,
+- antisaccade direction sequence,
+- antisaccade ITI sequence.
+
+The schedule must not be modified after official data collection begins.
+
+### Protocol Status
+
+**NeuroMirror Experiment 01 Protocol v1.0 — FROZEN**
+
+From this point onward, task timing, stimulus geometry, calibration and
+validation positions, trial counts, randomization schedule, acquisition
+architecture, and raw-data schema must remain unchanged during the 14-day
+study unless a protocol deviation is necessary.
+
+Any necessary deviation must be documented and must not result in manual
+editing of previously recorded raw data.
+
+Development and dry-run data remain separate from official Experiment 01 data.
+
+Next milestone:
+
+**Experiment 01 — Day 01 Official Data Collection**

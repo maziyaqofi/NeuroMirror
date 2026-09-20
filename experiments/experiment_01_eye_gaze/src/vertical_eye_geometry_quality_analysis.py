@@ -219,6 +219,210 @@ def analyze_aperture_ratio_relationship(
     )
 
 # ============================================================
+# LOWER-TAIL APERTURE ANALYSIS
+# ============================================================
+
+def analyze_lower_tail(
+    label,
+    apertures,
+    ratios
+):
+    """
+    Compare vertical-ratio deviation across
+    low-aperture portions of the distribution.
+
+    This is descriptive only.
+    Percentile boundaries are not QC thresholds.
+    """
+
+    median_ratio = statistics.median(
+        ratios
+    )
+
+    ratio_deviations = [
+        abs(ratio - median_ratio)
+        for ratio in ratios
+    ]
+
+    p05_aperture = percentile(
+        apertures,
+        5
+    )
+
+    p10_aperture = percentile(
+        apertures,
+        10
+    )
+
+    lowest_5 = [
+        deviation
+        for aperture, deviation
+        in zip(apertures, ratio_deviations)
+        if aperture <= p05_aperture
+    ]
+
+    lowest_10 = [
+        deviation
+        for aperture, deviation
+        in zip(apertures, ratio_deviations)
+        if aperture <= p10_aperture
+    ]
+
+    remaining_90 = [
+        deviation
+        for aperture, deviation
+        in zip(apertures, ratio_deviations)
+        if aperture > p10_aperture
+    ]
+
+    print(
+        f"\n{label} LOWER-TAIL APERTURE ANALYSIS"
+    )
+
+    print(
+        f"  P05 aperture boundary : "
+        f"{p05_aperture:.6f}"
+    )
+
+    print(
+        f"  P10 aperture boundary : "
+        f"{p10_aperture:.6f}"
+    )
+
+    print(
+        f"  Lowest 5%  "
+        f"N={len(lowest_5):3d} | "
+        f"median ratio deviation="
+        f"{statistics.median(lowest_5):.6f}"
+    )
+
+    print(
+        f"  Lowest 10% "
+        f"N={len(lowest_10):3d} | "
+        f"median ratio deviation="
+        f"{statistics.median(lowest_10):.6f}"
+    )
+
+    print(
+        f"  Remaining 90% "
+        f"N={len(remaining_90):3d} | "
+        f"median ratio deviation="
+        f"{statistics.median(remaining_90):.6f}"
+    )
+
+# ============================================================
+# EXTREME-DEVIATION CONCENTRATION
+# ============================================================
+
+def analyze_extreme_deviation_concentration(
+    label,
+    apertures,
+    ratios
+):
+    """
+    Determine whether the most extreme vertical-ratio
+    deviations are concentrated in the lower aperture tail.
+
+    Percentile boundaries are descriptive only.
+    They are not QC rejection thresholds.
+    """
+
+    median_ratio = statistics.median(
+        ratios
+    )
+
+    samples = [
+        {
+            "aperture": aperture,
+            "deviation": abs(
+                ratio - median_ratio
+            ),
+        }
+        for aperture, ratio
+        in zip(apertures, ratios)
+    ]
+
+    p05_aperture = percentile(
+        apertures,
+        5
+    )
+
+    p10_aperture = percentile(
+        apertures,
+        10
+    )
+
+    deviations = [
+        sample["deviation"]
+        for sample in samples
+    ]
+
+    p90_deviation = percentile(
+        deviations,
+        90
+    )
+
+    extreme_samples = [
+        sample
+        for sample in samples
+        if sample["deviation"] >= p90_deviation
+    ]
+
+    extreme_in_lowest_5 = [
+        sample
+        for sample in extreme_samples
+        if sample["aperture"] <= p05_aperture
+    ]
+
+    extreme_in_lowest_10 = [
+        sample
+        for sample in extreme_samples
+        if sample["aperture"] <= p10_aperture
+    ]
+
+    total_extreme = len(
+        extreme_samples
+    )
+
+    pct_lowest_5 = (
+        100.0
+        * len(extreme_in_lowest_5)
+        / total_extreme
+    )
+
+    pct_lowest_10 = (
+        100.0
+        * len(extreme_in_lowest_10)
+        / total_extreme
+    )
+
+    print(
+        f"\n{label} EXTREME-DEVIATION CONCENTRATION"
+    )
+
+    print(
+        f"  P90 deviation boundary : "
+        f"{p90_deviation:.6f}"
+    )
+
+    print(
+        f"  Extreme samples        : "
+        f"{total_extreme}"
+    )
+
+    print(
+        f"  In lowest 5% aperture  : "
+        f"{len(extreme_in_lowest_5)} "
+        f"({pct_lowest_5:.1f}%)"
+    )
+
+    print(
+        f"  In lowest 10% aperture : "
+        f"{len(extreme_in_lowest_10)} "
+        f"({pct_lowest_10:.1f}%)"
+    )
+
+# ============================================================
 # RUN ANALYSIS
 # ============================================================
 
@@ -294,6 +498,30 @@ def analyze_run(
     )
 
     analyze_aperture_ratio_relationship(
+        "RIGHT",
+        right_apertures,
+        right_ratios
+    )
+
+    analyze_lower_tail(
+        "LEFT",
+        left_apertures,
+        left_ratios
+    )
+
+    analyze_lower_tail(
+        "RIGHT",
+        right_apertures,
+        right_ratios
+    )
+
+    analyze_extreme_deviation_concentration(
+        "LEFT",
+        left_apertures,
+        left_ratios
+    )
+
+    analyze_extreme_deviation_concentration(
         "RIGHT",
         right_apertures,
         right_ratios
